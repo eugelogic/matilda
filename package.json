@@ -1,13 +1,16 @@
 {
   "private": true,
+  "version": "1.0.0",
   "scripts": {
-    "build": "node bin/cmd.js",
-    "clean": "rimraf ./public"
+    "build": "./bin/matilda build",
+    "server": "./bin/matilda server",
+    "clean": "./bin/matilda clean"
   },
   "dependencies": {
     "chalk": "^4.1.0",
+    "commander": "^5.1.0",
+    "express": "^4.17.1",
     "fs-extra": "^9.0.1",
-    "recursive-readdir": "^2.2.2",
-    "rimraf": "^3.0.2"
+    "recursive-readdir": "^2.2.2"
   }
 }

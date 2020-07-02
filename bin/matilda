@@ -1,0 +1,145 @@
+#!/usr/bin/env node
+
+const fs = require('fs-extra');
+const path = require('path');
+const chalk = require('chalk');
+const recursive = require('recursive-readdir');
+const express = require('express');
+const { program } = require('commander');
+
+const pkg = require('../package.json');
+
+const paths = {
+    root: path.resolve(__dirname, '..'),
+    templates: path.resolve(__dirname, '../templates'),
+    content: path.resolve(__dirname, '../content'),
+    static: path.resolve(__dirname, '../static'),
+    public: path.resolve(__dirname, '../public'),
+};
+
+// --
+
+const calculatePublicPath = (file) => {
+    const slug = file.replace(new RegExp(`${paths.content}/(.+)(?:\.js|\.html)$`), '$1');
+    return path.join(slug === 'index' ? '' : slug, 'index.html');
+};
+
+const calculateContentPathFromRequest = (p) => {
+    let slug = p.replace(/\/index\.html$/, '').replace(/\/$/, '');
+    return path.join(paths.content, `${slug === '' ? 'index' : slug}.html`);
+}
+
+const readAndWriteContent = async (contentPath, template) => {
+    const content = await fs.readFile(contentPath, 'utf8');
+    return template.replace(/{{\W?main\W?}}/, content);
+};
+
+const cya = () => {
+    console.log(chalk.bgYellow.black`\n Finished. `)
+};
+
+const deletePublic = async () => {
+    console.log(`Empty: ${chalk.magentaBright`/public`}`);
+    await fs.remove(paths.public);
+};
+
+// --
+
+const matilda = `
+███╗   ███╗ █████╗ ████████╗██╗██╗     ██████╗  █████╗ 
+████╗ ████║██╔══██╗╚══██╔══╝██║██║     ██╔══██╗██╔══██╗
+██╔████╔██║███████║   ██║   ██║██║     ██║  ██║███████║
+██║╚██╔╝██║██╔══██║   ██║   ██║██║     ██║  ██║██╔══██║
+██║ ╚═╝ ██║██║  ██║   ██║   ██║███████╗██████╔╝██║  ██║
+╚═╝     ╚═╝╚═╝  ╚═╝   ╚═╝   ╚═╝╚══════╝╚═════╝ ╚═╝  ╚═╝
+`;
+
+// --
+
+const run = async (command) => {
+    try {
+        console.log(chalk.yellow`${matilda}\n`);
+        await command();
+    } catch (e) {
+        console.log(chalk.red`${matilda}`);
+        console.error(e);
+    }
+}
+
+const build = async () => {
+    await deletePublic();
+
+    console.log(`Copy:  ${chalk.magentaBright`/static`} => ${chalk.magentaBright`/public`}`)
+    await fs.copy(paths.static, paths.public);
+
+    const files = await recursive(paths.content, ['!*.html']);
+    const template = await fs.readFile(path.join(paths.templates, 'index.html'), 'utf8');
+
+    await Promise.all(files.map(async file => {
+        console.log(`Read:  ${chalk.greenBright`${file.replace(paths.root, '')}`}`);
+        const publicPath = calculatePublicPath(file);
+        fs.outputFile(path.join(paths.public, publicPath), await readAndWriteContent(file, template));
+        console.log(`Write: ${chalk.blueBright`/public/${publicPath}`}`);
+    }));
+};
+
+const server = async () => {
+    const template = await fs.readFile(path.join(paths.templates, 'index.html'), 'utf8');
+
+    const app = express();
+
+    app.use(express.static(paths.static));
+    app.get('*', async (req, res) => {
+        const contentPath = calculateContentPathFromRequest(req.path);
+        if (await fs.exists(contentPath)) {
+            return res.send(await readAndWriteContent(contentPath, template));
+        }
+        return res.status(404).send('Not Found');
+    });
+
+    app.listen(3000, () => {
+        console.log(`Server: ${chalk.cyan`http://localhost:3000/`}`);
+    });
+};
+
+// --
+
+program.version(pkg.version);
+
+program
+    .command(`build`)
+    .description(`Build a new copy of matilda`)
+    .action(async () => {
+        await run(build);
+    });
+
+program
+    .command(`server`)
+    .description(`Start a development server for matilda`)
+    .action(async () => {
+        await run(server);
+    });
+
+program
+    .command(`clean`)
+    .description(`Remove existing build files`)
+    .action(async () => {
+        await run(async () => {
+            await deletePublic();
+        });
+    });
+
+program.parse(process.argv);
+
+// --
+
+process.on('exit', (code) => {
+    cya();
+});
+
+process.on("uncaughtException", (e) => {
+    if (app) {
+        app.close();
+    }
+    console.error(e);
+});
