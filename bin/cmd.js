@@ -38,16 +38,13 @@ const matilda = `
 
         const files = await recursive(paths.content, ['!*.{html,js}']);
 
-        const templates = await Promise.all([
-            fs.readFile(path.join(paths.templates, 'header.html'), 'utf8'),
-            fs.readFile(path.join(paths.templates, 'footer.html'), 'utf8')
-        ]);
+        const template = await fs.readFile(path.join(paths.templates, 'index.html'), 'utf8');
 
         await Promise.all(files.map(async file => {
             console.log(`Read:  ${chalk.greenBright`${file.replace(paths.root, '')}`}`);
             const content = file.endsWith('.js') ? await require(file)(file) : await fs.readFile(file, 'utf8');
             const publicPath = calculatePublicPath(file);
-            fs.outputFile(path.join(paths.public, publicPath), `${templates[0]}\n${content}\n${templates[1]}`);
+            fs.outputFile(path.join(paths.public, publicPath), template.replace(/{{\W?main\W?}}/, content));
             console.log(`Write: ${chalk.blueBright`/public/${publicPath}`}`);
         }));
 
