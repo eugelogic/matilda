@@ -36,7 +36,7 @@ const matilda = `
         console.log(`Copy:  ${chalk.magentaBright`/static`} => ${chalk.magentaBright`/public`}`)
         await fs.copy(paths.static, paths.public);
 
-        const files = await recursive(paths.content, ['.html', '.js']);
+        const files = await recursive(paths.content, ['!*.{html,js}']);
 
         const templates = await Promise.all([
             fs.readFile(path.join(paths.templates, 'header.html'), 'utf8'),
