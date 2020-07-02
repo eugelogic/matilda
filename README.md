@@ -2,6 +2,6 @@
 
 ## Commands
 
-- `npm run build`: Build /content pages into /public
-- `npm run clean`: Remove /public
-
+- `npm run build` - Builds files from `/content` into `/public`
+- `npm run clean` - Removes `/public`
+- `npm run server` - Start a development server
