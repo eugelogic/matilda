@@ -13,7 +13,7 @@ const paths = {
 
 const calculatePublicPath = (file) => {
     const slug = file.replace(new RegExp(`${paths.content}/(.+)(?:\.js|\.html)$`), '$1');
-    return path.join(slug === '/' ? '' : slug, 'index.html');
+    return path.join(slug === 'index' ? '' : slug, 'index.html');
 };
 
 const matilda = `
