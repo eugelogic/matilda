@@ -6,6 +6,7 @@ const chalk = require('chalk');
 const recursive = require('recursive-readdir');
 const express = require('express');
 const { program } = require('commander');
+const handlebars = require('handlebars');
 
 const pkg = require('../package.json');
 
@@ -15,6 +16,11 @@ const paths = {
     content: path.resolve(__dirname, '../content'),
     static: path.resolve(__dirname, '../static'),
     public: path.resolve(__dirname, '../public'),
+};
+
+const matilda = {
+    env: process.env.NODE_ENV,
+    version: pkg.version,
 };
 
 // --
@@ -27,15 +33,15 @@ const calculatePublicPath = (file) => {
 const calculateContentPathFromRequest = (p) => {
     let slug = p.replace(/\/index\.html$/, '').replace(/\/$/, '');
     return path.join(paths.content, `${slug === '' ? 'index' : slug}.html`);
-}
+};
 
 const readAndWriteContent = async (contentPath, template) => {
-    const content = await fs.readFile(contentPath, 'utf8');
-    return template.replace(/{{\W?main\W?}}/, content);
+    const content = handlebars.compile(await fs.readFile(contentPath, 'utf8'))({ matilda });
+    return handlebars.compile(template)({ matilda, main: content });
 };
 
 const cya = () => {
-    console.log(chalk.bgYellow.black`\n Finished. `)
+    console.log(chalk.bgYellow.black`\n Finished. `);
 };
 
 const deletePublic = async () => {
@@ -45,7 +51,7 @@ const deletePublic = async () => {
 
 // --
 
-const matilda = `
+const ascii = `
 ███╗   ███╗ █████╗ ████████╗██╗██╗     ██████╗  █████╗ 
 ████╗ ████║██╔══██╗╚══██╔══╝██║██║     ██╔══██╗██╔══██╗
 ██╔████╔██║███████║   ██║   ██║██║     ██║  ██║███████║
@@ -58,29 +64,31 @@ const matilda = `
 
 const run = async (command) => {
     try {
-        console.log(chalk.yellow`${matilda}\n`);
+        console.log(chalk.yellow`${ascii}\n`);
         await command();
     } catch (e) {
-        console.log(chalk.red`${matilda}`);
+        console.log(chalk.red`${ascii}`);
         console.error(e);
     }
-}
+};
 
 const build = async () => {
     await deletePublic();
 
-    console.log(`Copy:  ${chalk.magentaBright`/static`} => ${chalk.magentaBright`/public`}`)
+    console.log(`Copy:  ${chalk.magentaBright`/static`} => ${chalk.magentaBright`/public`}`);
     await fs.copy(paths.static, paths.public);
 
     const files = await recursive(paths.content, ['!*.html']);
     const template = await fs.readFile(path.join(paths.templates, 'index.html'), 'utf8');
 
-    await Promise.all(files.map(async file => {
-        console.log(`Read:  ${chalk.greenBright`${file.replace(paths.root, '')}`}`);
-        const publicPath = calculatePublicPath(file);
-        fs.outputFile(path.join(paths.public, publicPath), await readAndWriteContent(file, template));
-        console.log(`Write: ${chalk.blueBright`/public/${publicPath}`}`);
-    }));
+    await Promise.all(
+        files.map(async (file) => {
+            console.log(`Read:  ${chalk.greenBright`${file.replace(paths.root, '')}`}`);
+            const publicPath = calculatePublicPath(file);
+            fs.outputFile(path.join(paths.public, publicPath), await readAndWriteContent(file, template));
+            console.log(`Write: ${chalk.blueBright`/public/${publicPath}`}`);
+        })
+    );
 };
 
 const server = async () => {
@@ -136,7 +144,7 @@ process.on('exit', (code) => {
     cya();
 });
 
-process.on("uncaughtException", (e) => {
+process.on('uncaughtException', (e) => {
     if (app) {
         app.close();
     }
