@@ -8,9 +8,9 @@
 
 ## Content
 
-Currently, only `.html` files are supported for content. 
+Currently, only `.html` files are supported for content.
 
-### Frontmatter
+### Frontmatter
 
 You can add frontmatter to your HTML content files in order to share data between your content and your templates. This data is made available via a `{{ page.* }}` expression, and can be used within both contnet, and template files.
 
