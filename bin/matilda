@@ -7,6 +7,7 @@ const recursive = require('recursive-readdir');
 const express = require('express');
 const { program } = require('commander');
 const handlebars = require('handlebars');
+const matter = require('gray-matter');
 
 const pkg = require('../package.json');
 
@@ -36,8 +37,9 @@ const calculateContentPathFromRequest = (p) => {
 };
 
 const readAndWriteContent = async (contentPath, template) => {
-    const content = handlebars.compile(await fs.readFile(contentPath, 'utf8'))({ matilda });
-    return handlebars.compile(template)({ matilda, main: content });
+    const content = matter(await fs.readFile(contentPath, 'utf8'));
+    const main = handlebars.compile(content.content)({ matilda, page: content.data });
+    return handlebars.compile(template)({ matilda, main, page: content.data });
 };
 
 const cya = () => {
