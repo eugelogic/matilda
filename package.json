@@ -1,5 +1,5 @@
 {
-  "private": true,
+  "name": "@eugelogic/matilda",
   "version": "1.1.0",
   "bin": "./bin/matilda",
   "scripts": {
