@@ -1,22 +1,22 @@
 #!/usr/bin/env node
 
-const fs = require('fs-extra');
-const path = require('path');
-const chalk = require('chalk');
-const recursive = require('recursive-readdir');
-const express = require('express');
-const { program } = require('commander');
-const handlebars = require('handlebars');
-const matter = require('gray-matter');
+const fs = require("fs-extra");
+const path = require("path");
+const chalk = require("chalk");
+const recursive = require("recursive-readdir");
+const express = require("express");
+const { program } = require("commander");
+const handlebars = require("handlebars");
+const matter = require("gray-matter");
 
-const pkg = require('../package.json');
+const pkg = require("../package.json");
 
 const paths = {
-    root: path.resolve(__dirname, '..'),
-    templates: path.resolve(__dirname, '../templates'),
-    content: path.resolve(__dirname, '../content'),
-    static: path.resolve(__dirname, '../static'),
-    public: path.resolve(__dirname, '../public'),
+    root: process.cwd(),
+    templates: path.join(process.cwd(), "templates"),
+    content: path.join(process.cwd(), "content"),
+    static: path.join(process.cwd(), "static"),
+    public: path.join(process.cwd(), "public"),
 };
 
 const matilda = {
@@ -27,18 +27,24 @@ const matilda = {
 // --
 
 const calculatePublicPath = (file) => {
-    const slug = file.replace(new RegExp(`${paths.content}/(.+)(?:\.js|\.html)$`), '$1');
-    return path.join(slug === 'index' ? '' : slug, 'index.html');
+    const slug = file.replace(
+        new RegExp(`${paths.content}/(.+)(?:\.js|\.html)$`),
+        "$1"
+    );
+    return path.join(slug === "index" ? "" : slug, "index.html");
 };
 
 const calculateContentPathFromRequest = (p) => {
-    let slug = p.replace(/\/index\.html$/, '').replace(/\/$/, '');
-    return path.join(paths.content, `${slug === '' ? 'index' : slug}.html`);
+    let slug = p.replace(/\/index\.html$/, "").replace(/\/$/, "");
+    return path.join(paths.content, `${slug === "" ? "index" : slug}.html`);
 };
 
 const readAndWriteContent = async (contentPath, template) => {
-    const content = matter(await fs.readFile(contentPath, 'utf8'));
-    const main = handlebars.compile(content.content)({ matilda, page: content.data });
+    const content = matter(await fs.readFile(contentPath, "utf8"));
+    const main = handlebars.compile(content.content)({
+        matilda,
+        page: content.data,
+    });
     return handlebars.compile(template)({ matilda, main, page: content.data });
 };
 
@@ -77,17 +83,27 @@ const run = async (command) => {
 const build = async () => {
     await deletePublic();
 
-    console.log(`Copy:  ${chalk.magentaBright`/static`} => ${chalk.magentaBright`/public`}`);
+    console.log(
+        `Copy:  ${chalk.magentaBright`/static`} => ${chalk.magentaBright`/public`}`
+    );
     await fs.copy(paths.static, paths.public);
 
-    const files = await recursive(paths.content, ['!*.html']);
-    const template = await fs.readFile(path.join(paths.templates, 'index.html'), 'utf8');
+    const files = await recursive(paths.content, ["!*.html"]);
+    const template = await fs.readFile(
+        path.join(paths.templates, "index.html"),
+        "utf8"
+    );
 
     await Promise.all(
         files.map(async (file) => {
-            console.log(`Read:  ${chalk.greenBright`${file.replace(paths.root, '')}`}`);
+            console.log(
+                `Read:  ${chalk.greenBright`${file.replace(paths.root, "")}`}`
+            );
             const publicPath = calculatePublicPath(file);
-            fs.outputFile(path.join(paths.public, publicPath), await readAndWriteContent(file, template));
+            fs.outputFile(
+                path.join(paths.public, publicPath),
+                await readAndWriteContent(file, template)
+            );
             console.log(`Write: ${chalk.blueBright`/public/${publicPath}`}`);
         })
     );
@@ -97,13 +113,16 @@ const server = async () => {
     const app = express();
 
     app.use(express.static(paths.static));
-    app.get('*', async (req, res) => {
+    app.get("*", async (req, res) => {
         const contentPath = calculateContentPathFromRequest(req.path);
         if (await fs.exists(contentPath)) {
-            const template = await fs.readFile(path.join(paths.templates, 'index.html'), 'utf8');
+            const template = await fs.readFile(
+                path.join(paths.templates, "index.html"),
+                "utf8"
+            );
             return res.send(await readAndWriteContent(contentPath, template));
         }
-        return res.status(404).send('Not Found');
+        return res.status(404).send("Not Found");
     });
 
     app.listen(3000, () => {
@@ -142,11 +161,11 @@ program.parse(process.argv);
 
 // --
 
-process.on('exit', (code) => {
+process.on("exit", (code) => {
     cya();
 });
 
-process.on('uncaughtException', (e) => {
+process.on("uncaughtException", (e) => {
     if (app) {
         app.close();
     }
