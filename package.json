@@ -1,6 +1,7 @@
 {
   "private": true,
   "version": "1.1.0",
+  "bin": "./bin/matilda",
   "scripts": {
     "build": "./bin/matilda build",
     "server": "./bin/matilda server",
