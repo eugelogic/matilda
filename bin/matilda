@@ -31,7 +31,9 @@ const calculatePublicPath = (file) => {
         new RegExp(`${paths.content}/(.+)(?:\.js|\.html)$`),
         "$1"
     );
-    return path.join(slug === "index" ? "" : slug, "index.html");
+    return slug === "404"
+        ? "404.html"
+        : path.join(slug === "index" ? "" : slug, "index.html");
 };
 
 const calculateContentPathFromRequest = (p) => {
