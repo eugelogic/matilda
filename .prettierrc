@@ -1,0 +1,14 @@
+{
+    "arrowParens": "always",
+    "semi": true,
+    "tabWidth": 4,
+    "singleQuote": true,
+    "overrides": [
+        {
+            "files": "*.{yml,yaml}",
+            "options": {
+                "tabWidth": 2
+            }
+        }
+    ]
+}
