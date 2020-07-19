@@ -18,6 +18,10 @@
         "recursive-readdir": "^2.2.2"
     },
     "devDependencies": {
+        "husky": "^4.2.5",
         "prettier": "^2.0.5"
+    },
+    "husky": {
+        "pre-commit": "npm run format"
     }
 }
