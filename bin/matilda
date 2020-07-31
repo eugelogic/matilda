@@ -11,6 +11,8 @@ const matter = require("gray-matter");
 
 const pkg = require("../package.json");
 
+let hooks = {};
+
 const paths = {
     root: process.cwd(),
     templates: path.join(process.cwd(), "templates"),
@@ -43,10 +45,16 @@ const calculateContentPathFromRequest = (p) => {
 
 const readAndWriteContent = async (contentPath, template) => {
     const content = matter(await fs.readFile(contentPath, "utf8"));
-    const main = handlebars.compile(content.content)({
+    let main = handlebars.compile(content.content)({
         matilda,
         page: content.data,
     });
+    if ("transformContent" in hooks) {
+        main = await hooks.transformContent(main, {
+            data: content.data,
+            matilda,
+        });
+    }
     return handlebars.compile(template)({ matilda, main, page: content.data });
 };
 
@@ -75,6 +83,13 @@ const ascii = `
 const run = async (command) => {
     try {
         console.log(chalk.yellow`${ascii}\n`);
+        try {
+            hooks = require(path.join(paths.root, "matilda.js"));
+        } catch (e) {
+            if (e.code !== `MODULE_NOT_FOUND`) {
+                throw e;
+            }
+        }
         await command();
     } catch (e) {
         console.log(chalk.red`${ascii}`);
