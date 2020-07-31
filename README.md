@@ -45,3 +45,28 @@ Matilda makes a `matilda` object available within your templates that contains t
 
 {{ matilda.env }}
 ```
+
+## Transformers
+
+You can create a `matilda.js` file in the root of your project to hook into Matilda at certain points in the build process. At the moment, the only supported hook is `transformContent` which will allow you to alter the HTML of your content files at build time.
+
+This can be useful to, for example, append `loading="lazy"` to all images:
+
+```js
+exports.transformContent = (html) => {
+    return html.replace("<img", '<img loading="lazy"');
+};
+```
+
+Or perhaps you wish to pull data from an API:
+
+```js
+const htmlForJobs = (jobs) => {
+    // loop over jobs, and build up an HTML string
+};
+
+exports.transformContent = (html) => {
+    const jobs = axios.get("https://example.com/api/jobs");
+    return html.replace("[jobs]", htmlForJobs(jobs.response.data));
+};
+```
