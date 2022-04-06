@@ -6,20 +6,21 @@
         "build": "./bin/matilda build",
         "server": "./bin/matilda server",
         "clean": "./bin/matilda clean",
-        "format": "prettier --write ."
+        "format": "prettier --write .",
+        "prepare": "husky install"
     },
     "dependencies": {
-        "chalk": "4.1.0",
-        "commander": "6.2.1",
-        "express": "4.17.1",
-        "fs-extra": "9.0.1",
-        "gray-matter": "4.0.2",
-        "handlebars": "4.7.6",
+        "chalk": "4.1.2",
+        "commander": "9.1.0",
+        "express": "4.17.3",
+        "fs-extra": "10.0.1",
+        "gray-matter": "4.0.3",
+        "handlebars": "4.7.7",
         "recursive-readdir": "2.2.2"
     },
     "devDependencies": {
-        "husky": "4.3.6",
-        "prettier": "2.2.1"
+        "husky": "7.0.4",
+        "prettier": "2.6.2"
     },
     "husky": {
         "hooks": {
