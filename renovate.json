@@ -9,6 +9,10 @@
         {
             "updateTypes": ["minor", "patch", "pin", "digest"],
             "automerge": true
+        },
+        {
+            "matchPackageNames": ["chalk"],
+            "allowedVersions": "< 5"
         }
     ]
 }

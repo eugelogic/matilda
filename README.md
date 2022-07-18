@@ -54,7 +54,7 @@ This can be useful to, for example, append `loading="lazy"` to all images:
 
 ```js
 exports.transformContent = (html) => {
-    return html.replace("<img", '<img loading="lazy"');
+    return html.replace('<img', '<img loading="lazy"');
 };
 ```
 
@@ -66,7 +66,7 @@ const htmlForJobs = (jobs) => {
 };
 
 exports.transformContent = (html) => {
-    const jobs = axios.get("https://example.com/api/jobs");
-    return html.replace("[jobs]", htmlForJobs(jobs.response.data));
+    const jobs = axios.get('https://example.com/api/jobs');
+    return html.replace('[jobs]', htmlForJobs(jobs.response.data));
 };
 ```
