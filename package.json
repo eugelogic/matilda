@@ -19,7 +19,7 @@
         "recursive-readdir": "2.2.2"
     },
     "devDependencies": {
-        "husky": "8.0.1",
+        "husky": "9.1.7",
         "prettier": "2.7.1"
     }
 }
